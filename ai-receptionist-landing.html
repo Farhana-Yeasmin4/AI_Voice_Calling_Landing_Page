@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shrobon AI Calling by Oleyn: an AI receptionist that never misses a call</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<style>
+/* Design principles follow orbit.oleyn.ai: square interface corners, hairline grids that share borders,
+   left-aligned heads with a kicker line, a marker stroke under the words that matter, line icons in tinted tiles,
+   numbered steps split by rules, window-framed product pictures. Colours are the original green, mint and ink. */
+:root{--g:#1E5B43;--g2:#174A36;--g3:#2F8A63;--mint:#8FDDB6;--ok:#E6F2EC;--ink:#14201B;--ink2:#22332C;--ink3:#2C4A3D;--txt:#14201B;--mut:#55645C;--sub:#3B4A43;--bg:#F5F7F5;--bd:#E1E6E2;--bd2:#EDF0EE;--urg:#FDEEE3;--urgT:#9A3F07;--chk:#E8F0FB;--chkT:#1D4F91;
+--line:#E1E6E2;--line2:#C9D3CD;--dark:#1F3329;--dline:#34493F;--hand:'Caveat','Segoe Print',cursive;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ease:cubic-bezier(.2,.7,.2,1);--shadow:0 1px 2px rgba(20,32,27,.05),0 18px 40px -22px rgba(20,32,27,.28)}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-padding-top:100px;-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+[hidden]{display:none!important}
+body{font-family:Lato,'Helvetica Neue',Arial,sans-serif;color:var(--sub);background:#fff;line-height:1.6;font-size:17px;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--g3);outline-offset:3px}
+.dark :focus-visible{outline-color:var(--mint)}
+::selection{background:var(--ok)}
+.wrap{width:min(100% - 48px,1160px);margin-inline:auto}
+.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+
+/* ---------- type ---------- */
+.kicker{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px;color:var(--g);font-size:15px;font-weight:700}
+.dark .kicker{color:var(--mint)}
+h1{color:var(--ink);font-size:clamp(32px,3.8vw,48px);line-height:1.1;font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+h2{color:var(--ink);font-size:clamp(30px,3.6vw,46px);line-height:1.1;font-weight:700;letter-spacing:-.025em;text-wrap:balance}
+h3{color:var(--ink);font-weight:700;letter-spacing:-.01em}
+.dark h2,.dark h3{color:#fff}
+.lead{max-width:560px;margin-top:24px;color:var(--mut);font-size:17px;line-height:1.6;text-wrap:pretty}
+/* the words that matter: brand green, with a mint marker stroke drawn on once */
+.hl{position:relative;isolation:isolate;color:var(--g);white-space:nowrap}
+.hl::after{content:"";position:absolute;left:-2%;right:-3%;bottom:-.1em;height:.32em;z-index:-1;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'%3E%3Cpath d='M3 15C60 8 140 6 296 10M14 20C90 15 180 14 270 17' fill='none' stroke='%238FDDB6' stroke-width='7' stroke-linecap='round' stroke-dasharray='320' stroke-dashoffset='320'%3E%3Canimate attributeName='stroke-dashoffset' to='0' dur='.9s' begin='.4s' fill='freeze'/%3E%3C/path%3E%3C/svg%3E") 0 0/100% 100% no-repeat}
+.dark .hl{color:var(--mint)}
+.dark .hl::after{display:none}
+.hand{font:600 24px/1.1 var(--hand)}
+
+/* ---------- buttons, links, chips ---------- */
+.btn{font:inherit;display:inline-flex;align-items:center;justify-content:center;gap:10px;height:48px;padding:0 22px;border:1px solid var(--line2);background:#fff;color:var(--ink);font-weight:700;font-size:15.5px;line-height:1;white-space:nowrap;cursor:pointer;border-radius:10px;transition:background .2s,border-color .2s,color .2s,transform .2s}
+.btn:hover{border-color:var(--ink)}
+.btn .ic{width:16px;height:16px;transition:transform .25s var(--ease)}
+.btn:hover .ic.go{transform:translateX(3px)}
+.btn-p{background:var(--g);border-color:var(--g);color:#fff}
+.btn-p:hover{background:var(--g2);border-color:var(--g2)}
+.btn-mint{background:var(--mint);border-color:var(--mint);color:var(--ink)}
+.btn-mint:hover{background:#7ACFA5;border-color:#7ACFA5}
+.btn-sm{height:40px;padding:0 16px;font-size:14.5px}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:34px}
+.text-link{display:inline-flex;align-items:center;gap:6px;color:var(--ink);font-weight:700}
+.text-link .ic{width:16px;height:16px;color:var(--g3);transition:transform .25s var(--ease)}
+.text-link:hover .ic{transform:translateX(3px)}
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;font-size:12px;font-weight:700;line-height:1;white-space:nowrap;vertical-align:middle;letter-spacing:.01em}
+.c-ok{background:var(--ok);color:var(--g)}.c-urg{background:var(--urg);color:var(--urgT)}.c-chk{background:var(--chk);color:var(--chkT)}.c-neu{background:#EEF1EF;color:var(--sub)}
+.dark .c-neu{background:var(--ink3);color:#D5DED9}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--g3);flex:none;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.35}}
+
+/* ---------- sections ---------- */
+section{padding:clamp(80px,9vw,120px) 0}
+.alt{background:var(--bg)}
+.dark{background:var(--dark);color:#B8C7BF}
+section.dark{padding:clamp(56px,6vw,80px) 0}
+.dark .sec-head{margin-bottom:clamp(32px,4vw,48px)}
+.sec-head{max-width:720px;margin-bottom:clamp(40px,5vw,64px)}
+.sec-head.center{margin-inline:auto;text-align:center}
+.sec-head.center .kicker{justify-content:center}
+.sec-head .sub{max-width:600px;margin-top:18px;color:var(--mut);font-size:18px;text-wrap:pretty}
+.sec-head.center .sub{margin-inline:auto}
+.dark .sec-head .sub{color:#B8C7BF}
+
+/* hairline grids: square cells that share their borders */
+.hair{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.hair>*{background:#fff}
+.dark .hair{background:var(--dline);border-color:var(--dline)}
+.dark .hair>*{background:var(--dark)}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.g6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.spot{position:relative;padding:30px;transition:background .2s}
+.spot:hover{background:#FBFDFC}
+.dark .spot:hover{background:#263B31}
+.spot h3{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:19px;line-height:1.3}
+.spot p{margin-top:8px;color:var(--mut);font-size:16px}
+.dark .spot p{color:#B8C7BF}
+.spot .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px}
+.tile{display:grid;place-items:center;width:42px;height:42px;margin-bottom:22px;border-radius:12px;background:var(--ok);color:var(--g)}
+.tile .ic{width:21px;height:21px}
+.dark .tile{background:var(--ink3);color:var(--mint)}
+.split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(40px,6vw,88px);align-items:center}
+.split.rev{grid-template-columns:minmax(0,6fr) minmax(0,5fr)}
+
+/* a list of points split by hairlines */
+.points{list-style:none;margin-top:28px;border-bottom:1px solid var(--line)}
+.points li{display:flex;gap:14px;padding:16px 0;border-top:1px solid var(--line)}
+.points .n{flex:none;width:22px;color:var(--g3);font:600 26px/1 var(--hand)}
+.points .ic{margin-top:3px;color:var(--g3)}
+.points strong{display:block;color:var(--ink);font-weight:700}
+.points li div span{display:block;margin-top:3px;color:var(--mut);font-size:15.5px}
+
+/* numbered steps split by vertical rules */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none;counter-reset:s}
+.step{padding:0 28px 0 0}
+.step+.step{padding-left:28px;border-left:1px solid var(--dline)}
+.step::before{counter-increment:s;content:counter(s);display:block;margin-bottom:14px;color:var(--mint);font:600 38px/1 var(--hand)}
+.step h3{font-size:20px;line-height:1.25;margin-bottom:8px}
+.step p{color:#B8C7BF;font-size:16px}
+
+/* product pictures in a window frame */
+.win{background:#fff;border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)}
+.win-bar{display:flex;align-items:center;gap:14px;height:44px;padding:0 16px;border-bottom:1px solid var(--line);background:#FAFBFA;color:var(--mut);font-size:13px;font-weight:700}
+.win-bar .url{margin-left:auto;font:12px/1 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wdots{display:flex;gap:6px}.wdots i{width:10px;height:10px;border-radius:50%;background:var(--line2)}
+
+/* ---------- announcement and nav ---------- */
+.announce{background:var(--dark);color:#D5DED9;font-size:13px;font-weight:700;text-align:center;padding:9px 16px}
+.announce .new{display:inline-block;background:var(--mint);color:var(--ink);font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-right:8px}
+.announce a{color:#fff;text-decoration:underline;text-decoration-color:var(--mint);text-underline-offset:3px;margin-left:8px}
+/* navigation: the original floating glass bar with a sliding pill */
+nav.top{position:sticky;top:0;z-index:60;padding:12px 0;margin-bottom:-92px;transition:padding .3s}
+nav.top .wrap{width:min(100% - 48px,1240px)}
+.navbar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;height:68px;padding:0 10px 0 14px;background:rgba(255,255,255,.82);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border:1px solid rgba(225,230,226,.9);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 10px 30px -18px rgba(20,32,27,.25);transition:height .3s,box-shadow .3s}
+nav.top.scrolled{padding:8px 0}
+nav.top.scrolled .navbar{height:60px;background:rgba(255,255,255,.94);box-shadow:0 18px 40px -20px rgba(20,32,27,.35)}
+.navbar .mark,.foot-brand .mark{width:40px;height:40px;border-radius:12px;box-shadow:0 6px 14px -6px rgba(30,91,67,.7),inset 0 1px 0 rgba(255,255,255,.25)}
+.navbar .mark i:nth-child(1),.navbar .mark i:nth-child(5),.foot-brand .mark i:nth-child(1),.foot-brand .mark i:nth-child(5){height:8px}
+.navbar .mark i:nth-child(2),.navbar .mark i:nth-child(4),.foot-brand .mark i:nth-child(2),.foot-brand .mark i:nth-child(4){height:14px}
+.navbar .mark i:nth-child(3),.foot-brand .mark i:nth-child(3){height:20px}
+.navbar .mark::after,.foot-brand .mark::after{width:11px;height:11px}
+.brand{display:flex;align-items:center;gap:11px;color:var(--ink)}
+.mark{position:relative;flex:none;width:36px;height:36px;background:linear-gradient(145deg,#2F8A63,#1E5B43 60%,#14201B);display:flex;align-items:center;justify-content:center;gap:3px}
+.mark i{width:3px;border-radius:3px;background:#fff;animation:eq 1.2s ease-in-out infinite}
+.mark i:nth-child(1),.mark i:nth-child(5){height:7px}
+.mark i:nth-child(2),.mark i:nth-child(4){height:13px;animation-delay:-.3s}
+.mark i:nth-child(3){height:18px;animation-delay:-.6s}
+@keyframes eq{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.45)}}
+.mark::after{content:"";position:absolute;top:-3px;right:-3px;width:10px;height:10px;border-radius:50%;background:var(--mint);border:2px solid #fff}
+.wm{font-size:19px;font-weight:900;letter-spacing:-.02em;line-height:1}
+.wm span{color:var(--g)}
+.wm small{display:block;margin-top:4px;font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.links{position:relative;display:flex;gap:2px;padding:5px;background:var(--bg);border:1px solid var(--bd2);border-radius:13px}
+.links a{position:relative;z-index:1;padding:9px 15px;border-radius:9px;font-size:14.5px;font-weight:700;color:var(--sub);white-space:nowrap;transition:color .2s}
+@media(max-width:1100px) and (min-width:961px){.links a{padding:9px 11px}.signin{padding:0 14px}.demo{padding-left:14px}.navbar .wm{font-size:17px}}
+.links a:hover{color:var(--ink)}
+.links a.act{color:var(--g)}
+.pill{position:absolute;z-index:0;top:5px;bottom:5px;left:0;width:0;border-radius:9px;background:#fff;box-shadow:0 1px 2px rgba(20,32,27,.08),0 4px 12px -4px rgba(20,32,27,.18);opacity:0;transition:left .35s cubic-bezier(.3,1.3,.5,1),width .35s cubic-bezier(.3,1.3,.5,1),opacity .2s}
+.nav-cta{display:flex;gap:10px;align-items:center}
+.signin,.demo{display:inline-flex;align-items:center;justify-content:center;height:46px;padding:0 20px;border-radius:10px;font-weight:700;font-size:15px;white-space:nowrap;transition:background .2s,transform .2s}
+.signin{border:1px solid #C6D0CA;background:#fff;color:var(--ink)}
+.signin:hover{background:#F1F4F2}
+.demo{gap:12px;padding:0 6px 0 20px;border-radius:12px;border:1px solid var(--dark);background:var(--dark);color:#fff;box-shadow:0 12px 24px -12px rgba(20,32,27,.6)}
+.demo .ph{width:34px;height:34px;border-radius:9px;background:var(--mint);color:var(--ink);display:grid;place-items:center;flex:none;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.demo .ph .ic{width:17px;height:17px;stroke-width:2.2}
+.demo:hover .ph{transform:rotate(-14deg) scale(1.05)}
+.demo:hover{background:#263B31;border-color:#263B31;transform:translateY(-1px)}
+.burger{display:none;width:46px;height:46px;border:1px solid var(--bd);border-radius:12px;background:#fff;color:var(--ink);cursor:pointer;align-items:center;justify-content:center}
+.burger .ic{width:22px;height:22px;stroke-width:2}
+@media (prefers-reduced-motion:reduce){.pill,.demo .ph{transition:none}}
+
+/* ---------- home: hero ---------- */
+.hero{padding:calc(92px + clamp(48px,6vw,80px)) 0 clamp(72px,8vw,104px);overflow:clip}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:clamp(32px,5vw,64px);align-items:center}
+.hero h1{font-size:clamp(32px,3.6vw,46px);line-height:1.1}
+.win-bar .ttl{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hero-strip{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:26px;list-style:none;color:var(--mut);font-size:15px}
+.hero-strip li{display:inline-flex;align-items:center;gap:8px}
+.hero-strip .ic{width:16px;height:16px;color:var(--g3)}
+.mock{position:relative}
+.mail-pad{padding:22px;display:flex;flex-direction:column;gap:16px}
+.mail-pad h3{font-size:22px;line-height:1.25}
+.meta{color:var(--mut);font-size:13px;margin-top:4px}
+.lbl{font-size:12px;font-weight:700;color:var(--mut);margin-bottom:6px}
+.rows{border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:14px}
+.rows div{display:grid;grid-template-columns:130px 1fr;gap:10px;padding:9px 14px;border-bottom:1px solid var(--bd2)}
+.rows div:last-child{border-bottom:0}
+.rows b{font-size:13px;color:var(--mut)}
+.rows .chkrow{background:#F4F8FD}
+.float{position:absolute;z-index:2;background:#fff;border:1px solid var(--line2);border-radius:14px;padding:12px 16px;font-size:14px;font-weight:700;color:var(--ink);box-shadow:var(--shadow);display:flex;gap:10px;align-items:center;line-height:1.35}
+.float small{display:block;color:var(--mut);font-weight:400;font-size:12px}
+.f1{top:-22px;right:-18px}.f2{bottom:-24px;left:-26px}
+.ico{width:34px;height:34px;border-radius:10px;background:var(--ok);color:var(--g);display:grid;place-items:center;flex:none}
+
+/* stats band */
+.stats{background:var(--dark);color:#B8C7BF}
+.stats ul{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));list-style:none}
+.stats li{padding:26px 24px;border-left:1px solid var(--dline);font-size:15px;font-weight:700}
+.stats li:first-child{border-left:0;padding-left:0}
+.stats b{display:block;margin-bottom:4px;color:var(--mint);font-size:26px;letter-spacing:-.02em;line-height:1.15}
+
+.mode{padding:24px}
+.mode .chip{margin-bottom:14px}
+.mode h3{font-size:17px;margin-bottom:4px}
+.mode p{color:var(--mut);font-size:15px}
+
+/* dashboard picture */
+.dash-top{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dash-top .t{margin-right:auto;color:var(--ink);font-weight:700;font-size:15px;line-height:1.2}
+.dash-top .t small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.dstats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+.dstat{background:#fff;padding:12px 14px}
+.dstat.on{background:#F3F8F5;box-shadow:inset 0 -2px 0 var(--g)}
+.dstat span{display:block;font-size:11.5px;font-weight:700;color:var(--mut)}
+.dstat b{color:var(--ink);font-size:24px;font-weight:700;line-height:1.15;letter-spacing:-.02em}
+.drow{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.6fr) auto;gap:12px;align-items:center;padding:12px 18px;border-top:1px solid var(--bd2);font-size:14px}
+.drow:first-of-type{border-top:0}
+.drow .n{color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .n small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.drow .a{color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .s{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap}
+
+/* sample call */
+.call{background:var(--dark);color:#fff;border:1px solid var(--dark);border-radius:18px;padding:24px;box-shadow:var(--shadow)}
+.call-top{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.call-top .t{flex:1;font-weight:700}
+.call-top .t small{display:block;font-weight:400;color:#B8C7BF;font-size:13px}
+.wave{display:flex;align-items:center;justify-content:center;gap:4px;height:48px;margin:6px 0 16px}
+.wave span{width:4px;border-radius:4px;background:linear-gradient(var(--mint),var(--g3));animation:wv 1.1s ease-in-out infinite}
+@keyframes wv{0%,100%{height:8px}50%{height:42px}}
+.turn{display:grid;grid-template-columns:72px 1fr;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;opacity:0;animation:fade .5s forwards}
+.turn .w{font-size:11px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;padding-top:2px}
+.turn.ai .w{color:var(--mint)}.turn.cl .w{color:#B8C7BF}
+.turn.ai{background:rgba(143,221,182,.08)}
+@keyframes fade{to{opacity:1}}
+
+.rule-cell{display:flex;gap:16px;align-items:flex-start;padding:24px 26px}
+.rule-cell .tile{margin:0}
+.rule-cell h3{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:17px;margin-bottom:4px}
+.rule-cell p{color:var(--mut);font-size:15px}
+
+/* plans teaser */
+.mp{display:flex;flex-direction:column;padding:28px 30px}
+.mp.pop{background:#F6FAF8;box-shadow:inset 0 3px 0 var(--g)}
+.mp-n{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--ink);font-weight:700;font-size:19px;margin-bottom:18px}
+.mp b{color:var(--ink);font-size:48px;font-weight:700;line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.mp-u{margin-top:6px;color:var(--mut);font-weight:700;font-size:14px}
+.mp-d{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:var(--sub);font-size:15px}
+.mp .text-link{margin-top:18px;font-size:15px}
+.center-row{display:flex;justify-content:center;margin-top:36px}
+
+/* FAQ: heading on the left, a hairline list on the right */
+.faq-in{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,7fr);gap:clamp(40px,6vw,88px);align-items:start}
+.faq-in .sec-head{position:sticky;top:108px;margin-bottom:0}
+.faq{border-top:1px solid var(--dline)}
+.q{border-bottom:1px solid var(--dline)}
+.q button{width:100%;display:flex;justify-content:space-between;align-items:center;gap:24px;padding:22px 0;background:none;border:0;color:#fff;font:inherit;font-size:clamp(17px,1.5vw,19px);font-weight:700;line-height:1.4;text-align:left;cursor:pointer}
+.q button:hover{color:var(--mint)}
+.q button span{flex:none;display:grid;place-items:center;width:30px;height:30px;color:#B8C7BF;transition:color .2s}
+.q button span .ic{width:18px;height:18px;transition:transform .4s var(--ease)}
+.q.open button span{color:var(--mint)}
+.q.open button span .ic{transform:rotate(45deg)}
+.q .a{max-height:0;overflow:hidden;transition:max-height .45s var(--ease)}
+.q .a p{padding:0 52px 24px 0;color:#B8C7BF;font-size:16.5px;line-height:1.7}
+.q.open .a{max-height:340px}
+
+/* closing call to action */
+#cta{padding:clamp(72px,8vw,104px) 0}
+.cta{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,380px);gap:clamp(32px,5vw,64px);align-items:center;padding:clamp(36px,5vw,60px) clamp(28px,5vw,64px);border-radius:24px;background:var(--dark);color:#fff;position:relative;overflow:hidden}
+.cta::after{content:"";position:absolute;right:-120px;top:-120px;width:360px;height:360px;border-radius:50%;background:var(--g3);opacity:.45;pointer-events:none}
+.cta>*{position:relative;z-index:1}
+.cta h2{color:#fff;max-width:600px}
+.cta p{color:#D5EDE1;font-size:18px;margin-top:14px;max-width:560px}
+.cta .fine{font-size:14px;margin-top:20px}
+.cta form{display:grid;gap:10px}
+.cta input{font:inherit;height:50px;padding:0 16px;border-radius:10px;border:1px solid transparent;width:100%;font-size:15px;color:var(--ink)}
+.cta input:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.cta .btn{width:100%;height:50px}
+
+footer{background:var(--dark);color:#B8C7BF;padding:56px 0 40px;font-size:15px}
+.foot-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:40px}
+.foot-brand p{margin-top:14px;max-width:320px}
+.foot-brand .mark::after{border-color:var(--dark)}
+.foot-brand .wm{color:#fff}.foot-brand .wm span{color:var(--mint)}.foot-brand .wm small{color:#8FA197}
+.foot-cols{display:grid;grid-template-columns:repeat(3,minmax(130px,auto));gap:48px}
+footer h4{color:#fff;margin-bottom:12px;font-size:14px}
+footer ul{list-style:none}
+footer li a{display:block;padding:5px 0}
+footer a:hover{color:#fff}
+.fbot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px 20px;margin-top:48px;padding-top:22px;border-top:1px solid var(--dline);font-size:14px}
+
+/* ---------- inner pages ---------- */
+.phero{padding:calc(92px + clamp(40px,5vw,72px)) 0 clamp(56px,6vw,88px);border-bottom:1px solid var(--line)}
+.phero h1{max-width:900px}
+.phero .lead{max-width:680px}
+.jump{display:flex;flex-wrap:wrap;gap:8px 24px;margin-top:32px;list-style:none}
+.jump a{display:inline-flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;font-weight:700}
+.jump a b{color:var(--g3);font:600 22px/1 var(--hand)}
+.jump a::after{content:"↓";color:var(--g3);transition:transform .25s var(--ease)}
+.jump a:hover::after{transform:translateY(2px)}
+.flow{counter-reset:f}
+.fstep{padding:22px 20px}
+.fstep::before{counter-increment:f;content:counter(f);display:block;margin-bottom:12px;color:var(--g3);font:600 30px/1 var(--hand)}
+.fstep h3{font-size:16px;margin-bottom:4px}
+.fstep p{font-size:14.5px;color:var(--mut)}
+.band{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:24px 28px;border:1px dashed var(--line2);border-radius:16px;background:var(--bg)}
+.band h3{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:19px;margin-bottom:4px}
+.band p{color:var(--mut);font-size:15.5px}
+
+.plans{align-items:stretch}
+.plan{display:flex;flex-direction:column;padding:34px 30px}
+.plan.pop{background:#F6FAF8;box-shadow:inset 0 3px 0 var(--g)}
+.plan-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.plan h3{font-size:21px}
+.plan .for{margin-top:6px;color:var(--mut);font-size:15.5px}
+.plan .mins{margin-top:28px;color:var(--ink);font-size:58px;font-weight:700;line-height:1;letter-spacing:-.045em;font-variant-numeric:tabular-nums}
+.plan .mins small{font-size:16px;color:var(--mut);font-weight:700;letter-spacing:0}
+.est{margin-top:10px;color:var(--g3);font-weight:700;font-size:14.5px}
+.plan ul{list-style:none;display:grid;gap:11px;margin:26px 0 28px;padding-top:24px;border-top:1px solid var(--line);font-size:15.5px}
+.plan li{display:flex;gap:10px}
+.plan li .ic{width:16px;height:16px;margin-top:4px;color:var(--g3)}
+.plan .btn{margin-top:auto}
+.note{color:var(--mut);font-size:14.5px;margin-top:22px}
+.cmp-box{overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:16px}
+.cmp{width:100%;min-width:620px;border-collapse:collapse;font-size:15px}
+.cmp th,.cmp td{padding:14px 20px;border-bottom:1px solid var(--bd2);text-align:center}
+.cmp tbody th{text-align:left;font-weight:700;color:var(--sub)}
+.cmp thead th{color:var(--ink);font-size:17px;font-weight:700;padding:20px;background:#fff;border-bottom:1px solid var(--line)}
+.cmp td{font-weight:900;color:var(--g)}
+.cmp td.no{color:#A9B6AF;font-weight:400}
+.cmp .cp{background:#F3F8F5}
+.cmp thead th.cp{color:var(--g);box-shadow:inset 0 3px 0 var(--g)}
+.cmp tr.grp th{background:var(--bg);text-align:left;font-size:13px;font-weight:700;color:var(--mut);padding:10px 20px}
+.cmp tbody tr:last-child th,.cmp tbody tr:last-child td{border-bottom:0}
+
+/* scroll reveal: readable at rest, only lifts and brightens a little */
+.js [data-reveal]{opacity:.45;transform:translateY(14px);transition:opacity .8s var(--ease),transform .9s var(--ease)}
+.js [data-reveal].in{opacity:1;transform:none}
+
+/* ---------- responsive ---------- */
+@media(max-width:1180px){.f1{right:8px}.f2{left:8px}}
+@media(max-width:1020px){.g5{grid-template-columns:repeat(3,minmax(0,1fr))}.g5>:nth-child(5){grid-column:span 2}.g6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:960px){
+.links,.signin{display:none}.burger{display:inline-flex}
+.links.open{display:flex;flex-direction:column;gap:2px;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#fff;padding:8px;border:1px solid var(--bd);border-radius:16px;box-shadow:0 24px 48px -20px rgba(20,32,27,.35)}
+.links.open a{padding:14px 16px}.links.open a:hover{background:var(--bg)}.links .pill{display:none}
+.hero-grid,.split,.split.rev,.faq-in,.cta{grid-template-columns:minmax(0,1fr)}
+.faq-in .sec-head{position:static}
+.g3:has(>:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}
+.steps{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:40px}
+.step:nth-child(3){border-left:0;padding-left:0}
+.stats ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stats li:nth-child(3){border-left:0;padding-left:0}
+.stats li:nth-child(n+3){border-top:1px solid var(--dline)}
+.mock{max-width:600px}
+}
+@media(max-width:640px){
+.wrap{width:min(100% - 32px,1160px)}
+.g2,.g3,.g3:has(>:nth-child(4)),.g5,.g6{grid-template-columns:minmax(0,1fr)}.g5>:nth-child(5){grid-column:auto}
+.foot-cols{grid-template-columns:1fr 1fr;gap:28px}
+.steps{grid-template-columns:1fr;row-gap:32px}
+.step,.step+.step{padding:0;border:0}
+.stats ul{grid-template-columns:1fr}
+.stats li,.stats li:first-child{padding:18px 0;border-left:0;border-top:1px solid var(--dline)}
+.stats li:first-child{border-top:0}
+.dstats{grid-template-columns:1fr 1fr}
+.drow{grid-template-columns:1fr auto}.drow .a{display:none}
+.rows div{grid-template-columns:1fr;gap:2px}
+.f1,.f2{position:static;margin-top:12px}
+.q .a p{padding-right:0}
+.spot{padding:24px}
+.hl{white-space:normal;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 24' preserveAspectRatio='none'%3E%3Cpath d='M3 15C60 8 140 6 296 10M14 20C90 15 180 14 270 17' fill='none' stroke='%238FDDB6' stroke-width='7' stroke-linecap='round' stroke-dasharray='320' stroke-dashoffset='320'%3E%3Canimate attributeName='stroke-dashoffset' to='0' dur='.9s' begin='.4s' fill='freeze'/%3E%3C/path%3E%3C/svg%3E") 0 100%/100% .3em no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding-bottom:.04em}.hl::after{display:none}.dark .hl{background:none}
+.announce a{display:none}
+.wm{font-size:17px}
+.demo{gap:8px;padding:0 5px 0 14px;font-size:14px}.demo .ph{width:32px;height:32px}
+nav.top .wrap{width:calc(100% - 20px)}
+.navbar{gap:8px;padding:0 8px 0 10px}
+.navbar .brand{gap:8px;min-width:0}
+.navbar .mark{width:36px;height:36px}
+.navbar .wm{font-size:15.5px;white-space:nowrap}
+.nav-cta{gap:6px}.burger{width:42px;height:42px}
+/* phone layout */
+section{padding:64px 0}
+section.dark{padding:56px 0}
+.sec-head{margin-bottom:32px}
+.sec-head .sub{font-size:16.5px;margin-top:14px}
+.hero{padding:calc(92px + 32px) 0 64px}
+.phero{padding:calc(92px + 28px) 0 48px}
+.actions{flex-direction:column;align-items:stretch;margin-top:28px}
+.actions .btn{width:100%}
+.win-bar .url{display:none}
+.stats ul{grid-template-columns:1fr 1fr}
+.stats li,.stats li:first-child{padding:18px 0 18px 16px;border-left:1px solid var(--dline);border-top:0}
+.stats li:nth-child(odd){padding-left:0;border-left:0}
+.stats li:nth-child(n+3){border-top:1px solid var(--dline)}
+.stats b{font-size:22px}
+.g5{grid-template-columns:repeat(2,minmax(0,1fr))}.g5>:nth-child(5){grid-column:span 2}
+.mode{padding:18px}
+.g6{grid-template-columns:repeat(2,minmax(0,1fr))}
+.fstep{padding:18px 16px}
+.step{display:grid;grid-template-columns:36px minmax(0,1fr);column-gap:8px}
+.step::before{grid-row:1 / span 2;margin:0;font-size:32px}
+.split.rev>:first-child{order:2}
+.call{padding:18px}
+.turn{grid-template-columns:1fr;gap:2px}
+.spot{padding:22px}
+.rule-cell{padding:20px}
+.jump{gap:4px 20px}.jump a{padding:8px 0}
+.band{padding:20px}.band .btn{width:100%}
+.plan{padding:28px 22px}
+.mp{padding:24px}
+.dash-top{flex-wrap:wrap}
+}
+@media(max-width:360px){
+.g5,.g6{grid-template-columns:minmax(0,1fr)}.g5>:nth-child(5){grid-column:auto}
+.stats ul{grid-template-columns:1fr}
+.stats li,.stats li:first-child,.stats li:nth-child(odd){padding:16px 0;border-left:0}
+.stats li+li{border-top:1px solid var(--dline)}
+.foot-cols{grid-template-columns:1fr}
+.navbar .wm small{display:none}
+.navbar .wm{font-size:14px}.navbar .mark{width:32px;height:32px}.navbar .brand{gap:7px}
+.demo .ph,.burger{width:38px;height:38px}.demo{height:42px}
+}
+@media(max-width:440px){
+.demo{padding:0 5px}.demo .dl{display:none}
+}
+@media (prefers-reduced-motion:reduce){.mark i,.dot,.wave span{animation:none!important}.turn{opacity:1;animation:none}.js [data-reveal]{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-user-check" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 11l2 2 4-4"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18"/></symbol>
+  <symbol id="i-headphones" viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1v-6h3zM3 19a2 2 0 0 0 2 2h1v-6H3z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-layout" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/></symbol>
+  <symbol id="i-lifebuoy" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="m5.6 5.6 3.6 3.6M14.8 14.8l3.6 3.6M14.8 9.2l3.6-3.6M5.6 18.4l3.6-3.6"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8M9.9 5.1A10 10 0 0 1 12 5c5 0 9 4 10 7a11 11 0 0 1-2.2 3.4M6.6 6.6A11 11 0 0 0 2 12c1 3 5 7 10 7a10 10 0 0 0 5.4-1.6"/></symbol>
+  <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3M7 15h10"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4L21 8M21 3v5h-5"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7z"/><path d="M3.5 12H8l1.5-2.5 3 5L14 12h6.5"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M3 17v-4l2-6h14l2 6v4zM3 13h18M6 17v2M18 17v2"/><path d="M7 15h.01M17 15h.01"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h14V10M10 20v-6h4v6"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="1"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M16 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+  <symbol id="i-phone-out" viewBox="0 0 24 24"><path d="M15 3h6v6M21 3l-7 7"/><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2zM9 8h6M9 12h6M9 16h4"/></symbol>
+</svg>
+
+<div class="announce"><span class="new">Live</span>Our demo line is open: ring it and hear Shrobon answer like a real receptionist<a href="#cta">Get the number →</a></div>
+<nav class="top" id="topnav" aria-label="Main">
+  <div class="wrap"><div class="navbar">
+    <a href="#" class="brand" aria-label="Shrobon AI Calling home">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="wm">Shrobon <span>AI Calling</span><small>by Oleyn</small></span>
+    </a>
+    <div class="links" id="links">
+      <span class="pill" id="pill" aria-hidden="true"></span>
+      <a href="#how">How it works</a>
+      <a href="#/features">Features</a>
+      <a href="#/plans">Plans</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="signin">Sign in</a>
+      <a href="#cta" class="demo" aria-label="Book a demo"><span class="dl">Book a demo</span><span class="ph" aria-hidden="true"><svg class="ic"><use href="#i-phone"/></svg></span></a>
+      <button class="burger" aria-label="Open menu" aria-controls="links" aria-expanded="false" id="burger"><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg></button>
+    </div>
+  </div></div>
+</nav>
+
+<main id="home">
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker">AI receptionist for service businesses</p>
+      <h1>Never miss <span class="hl">another enquiry</span>, even when you can't get to the phone.</h1>
+      <p class="lead">When you're on a job, with a customer or closed for the day, Shrobon AI Calling answers. It records the call, captures the caller's details, flags anything urgent and emails you a summary within a minute. Every call is also added to your Google Sheet.</p>
+      <div class="actions">
+        <a href="#cta" class="btn btn-p">Book a demo <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        <a href="#listen" class="btn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>See a sample call</a>
+      </div>
+      <ul class="hero-strip">
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Keep your business number</li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Set up and ring-tested for you</li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>No apps to install</li>
+      </ul>
+    </div>
+
+    <div class="mock" aria-label="Example of the email you get after a call">
+      <div class="float f1"><span class="dot" aria-hidden="true"></span><div>Receptionist on<small>After hours · No answer · Busy</small></div></div>
+      <div class="win">
+        <div class="win-bar"><span class="wdots" aria-hidden="true"><i></i><i></i><i></i></span><span class="ttl">Luxury Design Painting · Shrobon AI Calling</span><span class="url">Inbox</span></div>
+        <div class="mail-pad">
+          <div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"><span class="chip c-neu">New enquiry</span><span class="chip c-ok">Enquiry captured</span><span class="chip c-chk">Check email</span></div>
+            <h3>New enquiry from Sarah Mitchell</h3>
+            <p class="meta">Today, 7:42 pm · 0412 555 318 · Call C-000214</p>
+          </div>
+          <div><div class="lbl">Summary</div><p style="font-size:15px;color:var(--ink)">Sarah wants a quote to paint the outside of her two-storey house in Cronulla, walls and trims, before Christmas. Not urgent.</p></div>
+          <div class="rows">
+            <div><b>Suburb</b><span>Cronulla</span></div>
+            <div><b>Service</b><span>Exterior painting</span></div>
+            <div class="chkrow"><b>Email</b><span>sarah.m@example.com <span class="chip c-chk" style="margin-left:6px">Check</span></span></div>
+            <div><b>Timing</b><span>Before Christmas</span></div>
+          </div>
+          <a href="#cta" class="btn btn-p" style="align-self:flex-start"><svg class="ic" aria-hidden="true"><use href="#i-phone"/></svg>Call back 0412 555 318</a>
+        </div>
+      </div>
+      <div class="float f2"><span class="ico" aria-hidden="true"><svg class="ic"><use href="#i-sheet"/></svg></span><div>Row added to your Sheet<small>LDP Calls · written 7:43 pm</small></div></div>
+    </div>
+  </div>
+</header>
+
+<div class="stats"><div class="wrap"><ul>
+  <li><b>100%</b>of calls answered or saved</li>
+  <li><b>~0.8 s</b>typical reply time</li>
+  <li><b>Within 60 s</b>email and Sheet row</li>
+  <li><b>0</b>invented prices or dates</li>
+</ul></div></div>
+
+<section id="when"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">You choose when it answers</p><h2>It steps in <span class="hl">only when you can't</span></h2><p class="sub">Your calls still ring you first. The AI picks up only in the moments you choose, and we ring-test each one with you before go-live.</p></div>
+  <div class="hair g5" data-reveal>
+    <div class="spot mode"><span class="chip c-ok">On</span><h3>After hours</h3><p>Evenings and weekends, based on your business hours.</p></div>
+    <div class="spot mode"><span class="chip c-ok">On</span><h3>No answer</h3><p>On a job or with a customer? It answers after a few rings.</p></div>
+    <div class="spot mode"><span class="chip c-ok">On</span><h3>Busy</h3><p>Already on a call? The second caller still gets answered.</p></div>
+    <div class="spot mode"><span class="chip c-ok">On</span><h3>Unreachable</h3><p>No signal or a flat phone. No call goes to a dead line.</p></div>
+    <div class="spot mode"><span class="chip c-neu">Optional</span><h3>Always</h3><p>Let the AI take every call and pass the details on to you.</p></div>
+  </div>
+</div></section>
+
+<section id="features" class="alt"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Features</p><h2>Everything a good receptionist does, <span class="hl">at any hour</span></h2><p class="sub">Built for service businesses that rely on the phone and can't afford to miss a lead.</p></div>
+  <div class="hair g3" data-reveal>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></div><h3>Asks your questions</h3><p>Follows your own lead form and keeps calls short.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-alert"/></svg></div><h3>Flags urgent calls</h3><p>Urgent callers go to the top of your list.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-mail"/></svg></div><h3>Email and Sheet in a minute</h3><p>A clear summary in your inbox and a new row in your Google Sheet.</p></div>
+  </div>
+  <div class="center-row"><a href="#/features" class="btn btn-p">See all features <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+</div></section>
+
+
+<section id="how" class="dark"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">How it works</p><h2>We set it up. <span class="hl">You get the leads.</span></h2><p class="sub">No apps to install and nothing to configure yourself. Oleyn builds, tests and looks after Shrobon AI Calling for you.</p></div>
+  <ol class="steps" data-reveal>
+    <li class="step"><h3>Tell us about your business</h3><p>Your hours, service areas, lead form questions and the answers the AI is allowed to give.</p></li>
+    <li class="step"><h3>We set up your number</h3><p>You get a local AI number, and we set up forwarding from your existing line, including business numbers routed by your provider.</p></li>
+    <li class="step"><h3>We ring-test it with you</h3><p>We test every forwarding mode and make test calls before your receptionist goes live.</p></li>
+    <li class="step"><h3>We review and improve it</h3><p>We review calls daily in the first week, then weekly. Every change is tested before your callers hear it.</p></li>
+  </ol>
+</div></section>
+
+<section id="listen" class="alt"><div class="wrap split rev">
+  <div class="call" aria-label="Sample call transcript" data-reveal>
+    <div class="call-top">
+      <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><rect width="36" height="36" fill="#2F8A63"/><path d="M10 20v-4M14 23V13M18 26V10M22 23V13M26 20v-4" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span class="t">Inbound call · After hours<small>0491 570 156 · Recording</small></span>
+      <span class="chip c-urg">Urgent</span>
+    </div>
+    <div class="wave" id="wave" aria-hidden="true"></div>
+    <div class="turn ai" style="animation-delay:.2s"><span class="w">AI</span><span>Hi, you've reached Luxury Design Painting. I'm an AI assistant and this call is recorded. How can I help?</span></div>
+    <div class="turn cl" style="animation-delay:1.1s"><span class="w">Caller</span><span>You painted our balcony last week and it's already peeling.</span></div>
+    <div class="turn ai" style="animation-delay:2s"><span class="w">AI</span><span>I'm sorry to hear that. Can I take your name?</span></div>
+    <div class="turn cl" style="animation-delay:2.9s"><span class="w">Caller</span><span>Daniel Wu. Rain's forecast tomorrow, so it'd be great if someone could look first thing.</span></div>
+    <div class="turn ai" style="animation-delay:3.8s"><span class="w">AI</span><span>Understood. I've marked this as urgent so the team sees it first. Luxury Design Painting will call you back.</span></div>
+  </div>
+  <div data-reveal>
+    <p class="kicker">Sounds like your business</p>
+    <h2>Honest, polite and <span class="hl">always on script</span></h2>
+    <p class="sub" style="margin-top:18px;color:var(--mut);font-size:18px">The AI says up front that it's an AI and that the call is recorded. It sticks to your approved answers, and callers can interrupt it at any time, just like a real conversation.</p>
+    <ul class="points">
+      <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><div><strong>Your greeting, your questions</strong><span>Asked in the order your lead form needs.</span></div></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><div><strong>Recognises existing customers</strong><span>Problems on a finished job are flagged and summarised for you.</span></div></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg><div><strong>Filters out sales calls</strong><span>They're marked "No call-back needed", so you don't waste time on them.</span></div></li>
+    </ul>
+  </div>
+</div></section>
+
+<section id="rules"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Rules it never breaks</p><h2>Safe for your <span class="hl">reputation</span></h2><p class="sub">These rules are locked on every account. No setting or caller can override them.</p></div>
+  <div class="hair g2" data-reveal>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg></span><div><h3>Never quotes prices</h3><p>Callers are told the team will follow up with a proper quote.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg></span><div><h3>Never promises dates or guarantees</h3><p>Bookings and start dates stay with you.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg></span><div><h3>Always says it's an AI</h3><p>It also tells every caller that the call is recorded.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg></span><div><h3>Never takes card details</h3><p>If a caller reads out a card number, it's masked in the transcript.</p></div></div>
+  </div>
+</div></section>
+
+<section id="industries" class="alt"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Who it's for</p><h2>Made for businesses that <span class="hl">live on the phone</span></h2><p class="sub">Your lead form decides what the AI asks, so it works for any service business.</p></div>
+  <div class="hair g3" data-reveal>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-wrench"/></svg></div><h3>Trades</h3><p>Painters, electricians, plumbers, roofers, landscapers and cleaners.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-heart"/></svg></div><h3>Clinics</h3><p>Dental, physio, vets and beauty.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-car"/></svg></div><h3>Auto services</h3><p>Mechanics, detailers and car dealers.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-home"/></svg></div><h3>Property</h3><p>Real estate agents, strata and property managers.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-truck"/></svg></div><h3>Home services</h3><p>Removalists, pest control and handymen.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-briefcase"/></svg></div><h3>Professional services</h3><p>Accountants, migration agents and law firms.</p></div>
+  </div>
+</div></section>
+
+
+<section id="plans-preview"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Plans</p><h2>Pick the plan that fits <span class="hl">your call volume</span></h2><p class="sub">Every plan includes every feature, plus setup and ring-testing by Oleyn. Plans differ only in minutes, numbers and how many calls can be answered at once.</p></div>
+  <div class="hair g3" data-reveal>
+    <a href="#/plans" class="mp"><span class="mp-n">Starter</span><b>300</b><span class="mp-u">minutes / month</span><span class="mp-d">1 number · 2 calls at once</span></a>
+    <a href="#/plans" class="mp pop"><span class="mp-n">Pro <span class="chip c-ok">Most popular</span></span><b>1,000</b><span class="mp-u">minutes / month</span><span class="mp-d">2 numbers · 5 calls at once</span></a>
+    <a href="#/plans" class="mp"><span class="mp-n">Enterprise</span><b>3,500</b><span class="mp-u">minutes / month</span><span class="mp-d">5 numbers · 15 calls at once</span></a>
+  </div>
+  <div class="center-row"><a href="#/plans" class="btn btn-p">Compare plans <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+</div></section>
+
+<section id="faq" class="dark"><div class="wrap faq-in">
+  <div class="sec-head"><p class="kicker">FAQ</p><h2>Questions, <span class="hl">answered</span></h2></div>
+  <div class="faq" data-reveal>
+    <div class="q"><button aria-expanded="false">Do I need to change my business number?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>No. You keep your number. Calls forward to your Shrobon AI Calling number only in the moments you choose. If your business number is routed by a provider (like a 1300 number in Australia), we arrange the redirect with them.</p></div></div>
+    <div class="q"><button aria-expanded="false">Will callers know they're talking to an AI?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>Yes. Every call starts with the AI saying it's an AI assistant and that the call is recorded. This rule is locked and can't be removed.</p></div></div>
+    <div class="q"><button aria-expanded="false">What if a caller asks something the AI doesn't know?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>It tells the caller the team will follow up, and the question appears in your email and dashboard. If you suggest an answer, Oleyn tests and approves it so the AI can answer next time.</p></div></div>
+    <div class="q"><button aria-expanded="false">What happens if the AI is unavailable?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>The call goes to your own number or your recorded message. Either way, it's still saved, emailed and added to your Sheet.</p></div></div>
+    <div class="q"><button aria-expanded="false">Who can see recordings and transcripts?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>Only people who sign in to your dashboard. Emails include the summary and details, but recordings only open after sign-in. Card numbers are masked in transcripts.</p></div></div>
+    <div class="q"><button aria-expanded="false">Which countries and languages do you support?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>We're live in Australia and are onboarding businesses in more countries. Shrobon currently speaks English, and more languages are planned. Book a demo to check availability for your country.</p></div></div>
+    <div class="q"><button aria-expanded="false">Can the AI book appointments or make outbound calls?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>Not yet. Today it answers, records and summarises calls, and never promises dates. Booking during the call, outbound calls and a full CRM are coming in the next release.</p></div></div>
+    <div class="q"><button aria-expanded="false">Can I change what the AI says?<span aria-hidden="true"><svg class="ic"><use href="#i-plus"/></svg></span></button><div class="a"><p>Yes. Ask for a change from your dashboard, such as new hours, a new question or a new urgent word. Oleyn makes the change, tests it and publishes it as a new version.</p></div></div>
+  </div>
+</div></section>
+
+</main>
+
+<main id="fpage" hidden>
+<header class="phero">
+  <div class="wrap">
+    <p class="kicker">Features</p>
+    <h1>Everything a good receptionist does, <span class="hl">at any hour</span></h1>
+    <p class="lead">Shrobon AI Calling answers when you can't, asks your questions, and gets every enquiry to you within a minute. Here's everything it does, from the first ring to the row in your Sheet.</p>
+    <div class="actions">
+      <a href="#cta" class="btn btn-p">Book a demo <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a href="#/plans" class="btn">See plans</a>
+    </div>
+    <ul class="jump" aria-label="Jump to a group of features">
+      <li><a href="#on-call"><b>1</b>On the call</a></li>
+      <li><a href="#after-call"><b>2</b>After the call</a></li>
+      <li><a href="#trust"><b>3</b>Reliable and safe</a></li>
+    </ul>
+  </div>
+</header>
+
+<section class="alt" style="padding:clamp(64px,7vw,88px) 0"><div class="wrap">
+  <div class="sec-head" style="margin-bottom:40px" data-reveal><p class="kicker">Every call, start to finish</p><h2>What happens when <span class="hl">a customer rings</span></h2></div>
+  <div class="hair g6 flow" data-reveal>
+    <div class="fstep"><h3>The call forwards</h3><p>Only in the moments you choose: after hours, no answer, busy, unreachable or always.</p></div>
+    <div class="fstep"><h3>The AI greets them</h3><p>It says it's an AI assistant and that the call is recorded.</p></div>
+    <div class="fstep"><h3>It works out why</h3><p>New enquiry, existing customer, supplier or sales call.</p></div>
+    <div class="fstep"><h3>It asks your questions</h3><p>From your lead form, then confirms the call-back number.</p></div>
+    <div class="fstep"><h3>It saves the call</h3><p>Recording, transcript, summary, details and outcome.</p></div>
+    <div class="fstep"><h3>You hear about it</h3><p>Email and a new Sheet row, usually within 60 seconds.</p></div>
+  </div>
+</div></section>
+
+<section id="on-call"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">01 · On the call</p><h2>Polite, quick and <span class="hl">on script</span></h2><p class="sub">The AI handles the conversation the way you would, and keeps calls short.</p></div>
+  <div class="hair g3" data-reveal>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-list"/></svg></div><h3>Asks your questions</h3><p>The AI follows your own lead form: name, location, service, details, email and timing. Optional questions are only asked if the caller is happy to keep going.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-user-check"/></svg></div><h3>Knows who's calling</h3><p>It tells new enquiries apart from existing customers, suppliers and sales calls. Only new enquiries get your lead questions; everyone else just gives a name and reason.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-alert"/></svg></div><h3>Flags urgent calls</h3><p>Words like "leaking", "damage" or "today" mark a call as urgent in the email, Sheet and dashboard, so you return it first.</p><div class="tags"><span class="chip c-urg">Urgent</span></div></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-repeat"/></svg></div><h3>Reads details back</h3><p>It spells emails back and reads back any different call-back number. It never asks for a number caller ID already shows.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-chat"/></svg></div><h3>Natural conversation</h3><p>Replies in about 0.8 seconds, and callers can interrupt at any time, just like talking to a person.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-shield"/></svg></div><h3>Answers only what you approve</h3><p>If there's no approved answer, the AI tells the caller you'll follow up and passes the question to you. Approve an answer and it can handle it next time.</p></div>
+  </div>
+</div></section>
+
+<section id="after-call" class="alt"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">02 · After the call</p><h2>Every enquiry, <span class="hl">ready to act on</span></h2><p class="sub">Details land where you already work, with a clear note on anything worth double-checking.</p></div>
+  <div class="hair g3" data-reveal>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-mail"/></svg></div><h3>Email within a minute</h3><p>Caller, reason, summary, captured details, urgent flag and a one-tap call-back button, sent to you and any staff you add.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-sheet"/></svg></div><h3>Writes to your Google Sheet</h3><p>One row per call, matched to your column names, with phone numbers keeping their leading 0. Your own Status and Notes columns are never touched.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-headphones"/></svg></div><h3>Recordings &amp; transcripts</h3><p>Both sides of every call are recorded. Play it back, or tap a line in the transcript to jump to that moment.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-search"/></svg></div><h3>Tells you what to check</h3><p>If the AI isn't sure of a detail, like an email heard somewhere noisy, it marks it "Check". Fix it in one click.</p><div class="tags"><span class="chip c-chk">Check email</span></div></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-layout"/></svg></div><h3>Owner dashboard</h3><p>All your calls in one list, with callers to return and urgent calls at the top. Edit a detail and your Sheet row updates too. Export to CSV any time.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-chart"/></svg></div><h3>Usage you can see</h3><p>Minutes used this month, with an email when you reach 80% and 100% of your plan.</p></div>
+  </div>
+</div></section>
+
+<section id="dashboard"><div class="wrap split">
+  <div data-reveal>
+    <p class="kicker">Owner dashboard</p>
+    <h2>All your calls in <span class="hl">one place</span></h2>
+    <p class="sub" style="margin-top:18px;color:var(--mut);font-size:18px">See who called, what they wanted and who still needs a call-back, newest first. Search by name, number, suburb or Call ID.</p>
+    <ul class="points">
+      <li><span class="n">1</span><div><strong>To return, urgent first</strong><span>A clear list of callers waiting on you, with urgent ones at the top.</span></div></li>
+      <li><span class="n">2</span><div><strong>Edit a detail, and your Sheet updates</strong><span>Correct a name or email on the call page and the Sheet row changes too.</span></div></li>
+      <li><span class="n">3</span><div><strong>Usage you can see</strong><span>Minutes used this month, with an email to you at 80% and 100%.</span></div></li>
+      <li><span class="n">4</span><div><strong>Export to CSV any time</strong><span>Columns match your Sheet, and phone numbers keep their leading 0.</span></div></li>
+    </ul>
+  </div>
+  <div class="win dash" aria-label="Example of the calls dashboard" data-reveal>
+    <div class="win-bar"><span class="wdots" aria-hidden="true"><i></i><i></i><i></i></span><span class="url">dashboard · calls</span></div>
+    <div class="dash-top"><span class="t">Calls<small>Luxury Design Painting · Owner dashboard</small></span><span class="chip c-ok"><span class="dot" style="width:8px;height:8px" aria-hidden="true"></span>Receptionist on</span></div>
+    <div class="dstats">
+      <div class="dstat"><span>All calls</span><b>8</b></div>
+      <div class="dstat on"><span>To return</span><b>4</b></div>
+      <div class="dstat"><span>Urgent</span><b style="color:var(--urgT)">1</b></div>
+      <div class="dstat"><span>Needs check</span><b style="color:var(--chkT)">3</b></div>
+    </div>
+    <div class="drow"><span class="n">Daniel Wu<small>0491 570 156</small></span><span class="a">Paint peeling on the balcony, rain tomorrow</span><span class="s"><span class="chip c-urg">Urgent</span><span class="chip c-neu">To return</span></span></div>
+    <div class="drow"><span class="n">Sarah Mitchell<small>0412 555 318</small></span><span class="a">Exterior painting · Cronulla</span><span class="s"><span class="chip c-chk">Check email</span><span class="chip c-neu">To return</span></span></div>
+    <div class="drow"><span class="n">Emma Clarke<small>0491 570 954</small></span><span class="a">Strata repaint · Bondi</span><span class="s"><span class="chip c-chk">Check number</span></span></div>
+    <div class="drow"><span class="n">Priya Nair<small>0491 570 313</small></span><span class="a">Interior painting · Marrickville</span><span class="s"><span class="chip c-ok">Returned</span></span></div>
+    <div class="drow"><span class="n">Name not given<small>0491 570 737</small></span><span class="a">Sales call about energy plans</span><span class="s"><span class="chip c-neu">No call-back needed</span></span></div>
+  </div>
+</div></section>
+
+<section id="trust" class="dark"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">03 · Reliable and safe</p><h2>Built so <span class="hl">no call is lost</span></h2><p class="sub">Locked rules protect your reputation, and Oleyn tests every change before your callers hear it.</p></div>
+  <div class="hair g3" data-reveal>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lifebuoy"/></svg></div><h3>A fallback that never drops a call</h3><p>If the AI can't answer, the call rings your own number or plays your recorded message. It's still saved and emailed.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-lock"/></svg></div><h3>Rules it never breaks</h3><p>It never quotes prices, promises dates or gives guarantees, never claims to be human and never takes card details.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-eye-off"/></svg></div><h3>Private by default</h3><p>Card numbers are masked in transcripts, emails and your Sheet. Recordings only open after sign-in.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-phone"/></svg></div><h3>Keep your number</h3><p>Your calls still ring you first. We set up forwarding from your existing line and ring-test every mode with you.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-flask"/></svg></div><h3>Tested before it goes live</h3><p>Every change to the AI runs against a set of saved test calls first. Each version is saved and can be rolled back in one step.</p></div>
+    <div class="spot"><div class="tile" aria-hidden="true"><svg class="ic"><use href="#i-refresh"/></svg></div><h3>Keeps working if your Sheet doesn't</h3><p>If your Google Sheet can't be reached, calls keep saving, you're told, and the missed rows are added once access is back.</p></div>
+  </div>
+</div></section>
+
+<section id="soon" style="padding-bottom:0"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Coming soon</p><h2>From missed call <span class="hl">to paid invoice</span></h2><p class="sub">We're building the next stage now. Every current customer gets these as they launch.</p></div>
+  <div class="hair g2" data-reveal>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div><h3>CRM and lead tracking <span class="chip c-neu">Soon</span></h3><p>Every caller becomes a contact, with opportunities, stages and lead sources.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-calendar"/></svg></span><div><h3>Booking during the call <span class="chip c-neu">Soon</span></h3><p>Site visits and appointments booked within your rules, synced to Google Calendar.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-phone-out"/></svg></span><div><h3>AI outbound calls <span class="chip c-neu">Soon</span></h3><p>New web leads called back within a minute, plus reminders and quote follow-ups.</p></div></div>
+    <div class="rule-cell"><span class="tile" aria-hidden="true"><svg class="ic"><use href="#i-receipt"/></svg></span><div><h3>Quotes, invoices and payments <span class="chip c-neu">Soon</span></h3><p>Accepted online, paid by card link and synced to Xero.</p></div></div>
+  </div>
+</div></section>
+</main>
+
+<main id="ppage" hidden>
+<header class="phero">
+  <div class="wrap">
+    <p class="kicker">Plans</p>
+    <h1>Simple plans, <span class="hl">every feature included</span></h1>
+    <p class="lead">Choose by how many calls you get. Every plan answers, records and summarises your calls, emails you and fills your Google Sheet. Oleyn sets it up and ring-tests it with you.</p>
+    <div class="actions">
+      <a href="#cta" class="btn btn-p">Book a demo <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a href="#compare" class="btn">Compare plans</a>
+    </div>
+  </div>
+</header>
+
+<section id="pricing" style="padding-top:clamp(56px,6vw,80px)"><div class="wrap">
+  <div class="hair g3 plans" data-reveal>
+    <div class="plan"><div class="plan-top"><h3>Starter</h3></div><p class="for">For sole operators and small teams</p><div class="mins">300 <small>minutes / month</small></div><p class="est">Roughly 100 calls a month</p>
+      <ul><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>1 phone number</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>2 calls answered at the same time</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Email summary after every call</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Google Sheet sync</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Recordings &amp; transcripts</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Owner dashboard</li></ul>
+      <a href="#cta" class="btn">Get pricing</a></div>
+    <div class="plan pop"><div class="plan-top"><h3>Pro</h3><span class="chip c-ok">Most popular</span></div><p class="for">For busy, growing businesses</p><div class="mins">1,000 <small>minutes / month</small></div><p class="est">Roughly 330 calls a month</p>
+      <ul><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>2 phone numbers</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>5 calls answered at the same time</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Everything in Starter</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Extra staff on the call email</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Edit details and CSV export</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Usage alerts at 80% and 100%</li></ul>
+      <a href="#cta" class="btn btn-p">Get pricing</a></div>
+    <div class="plan"><div class="plan-top"><h3>Enterprise</h3></div><p class="for">For multi-team, high-volume businesses</p><div class="mins">3,500 <small>minutes / month</small></div><p class="est">Roughly 1,150 calls a month</p>
+      <ul><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>5 phone numbers</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>15 calls answered at the same time</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Everything in Pro</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Custom rules and answers</li><li><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>Priority tuning and review</li></ul>
+      <a href="#cta" class="btn">Talk to us</a></div>
+  </div>
+  <p class="note">Call estimates assume an average call of about 3 minutes. Send us your call volume and we'll suggest the right plan.</p>
+</div></section>
+
+<section id="compare" class="alt"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">Compare</p><h2>Plans <span class="hl">side by side</span></h2></div>
+  <div class="cmp-box" data-reveal><table class="cmp">
+    <thead><tr><th scope="col"><span class="sr">Feature</span></th><th scope="col">Starter</th><th scope="col" class="cp">Pro</th><th scope="col">Enterprise</th></tr></thead>
+    <tbody>
+      <tr class="grp"><th colspan="4" scope="colgroup">Capacity</th></tr>
+      <tr><th scope="row">Included minutes a month</th><td>300</td><td class="cp">1,000</td><td>3,500</td></tr>
+      <tr><th scope="row">Phone numbers</th><td>1</td><td class="cp">2</td><td>5</td></tr>
+      <tr><th scope="row">Calls answered at the same time</th><td>2</td><td class="cp">5</td><td>15</td></tr>
+      <tr class="grp"><th colspan="4" scope="colgroup">On the call</th></tr>
+      <tr><th scope="row">All five forwarding modes</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Your lead form questions</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Urgent call flags</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Locked safety rules</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr class="grp"><th colspan="4" scope="colgroup">After the call</th></tr>
+      <tr><th scope="row">Email summary after every call</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Google Sheet sync</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Recordings &amp; transcripts</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Owner dashboard</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Extra staff on the call email</th><td class="no">—</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Edit details and CSV export</th><td class="no">—</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Usage alerts at 80% and 100%</th><td class="no">—</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr class="grp"><th colspan="4" scope="colgroup">Setup and support</th></tr>
+      <tr><th scope="row">Setup and ring-testing by Oleyn</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Call review in your first week</th><td>✓</td><td class="cp">✓</td><td>✓</td></tr>
+      <tr><th scope="row">Custom rules and answers</th><td class="no">—</td><td class="cp no">—</td><td>✓</td></tr>
+      <tr><th scope="row">Priority tuning and review</th><td class="no">—</td><td class="cp no">—</td><td>✓</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section id="minutes" class="dark"><div class="wrap">
+  <div class="sec-head" data-reveal><p class="kicker">How minutes work</p><h2>Clear rules, <span class="hl">no surprises</span></h2><p class="sub">You can see your usage in the dashboard at any time.</p></div>
+  <ol class="steps" data-reveal>
+    <li class="step"><h3>Rounded up per call</h3><p>Each call is rounded up to the next minute. A 3:12 call counts as 4 minutes.</p></li>
+    <li class="step"><h3>Short calls are free</h3><p>Calls under 10 seconds, like hang-ups and wrong numbers, aren't counted.</p></li>
+    <li class="step"><h3>Alerts before you run out</h3><p>We email you at 80% and again at 100% of your minutes.</p></li>
+    <li class="step"><h3>Reset every month</h3><p>Your minutes reset on the 1st. If you reach your limit, calls go to your own number or recorded message, so none are lost.</p></li>
+  </ol>
+</div></section>
+
+<section style="padding-bottom:0"><div class="wrap">
+  <div class="band">
+    <div><h3>Not sure which plan fits? <span class="chip c-ok">Free advice</span></h3><p>Tell us roughly how many calls you miss each week and we'll recommend a plan on your demo.</p></div>
+    <a href="#/features" class="btn">See all features <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+  </div>
+</div></section>
+</main>
+
+<section id="cta"><div class="wrap"><div class="cta" data-reveal>
+  <div>
+    <h2>Stop losing jobs to voicemail</h2>
+    <p>Book a 20-minute demo. We'll make a live call to a sample line and show you the email, the Sheet row and the dashboard.</p>
+    <p class="fine">Set up by Oleyn · Keep your number · No apps to install</p>
+  </div>
+  <div>
+    <form id="ctaForm">
+      <label for="cta-email" class="sr">Work email</label>
+      <input id="cta-email" type="email" required placeholder="you@business.com.au">
+      <button class="btn btn-mint" type="submit">Book a demo <svg class="ic go" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+    </form>
+  </div>
+</div></div></section>
+
+<footer><div class="wrap">
+  <div class="foot-top">
+    <div class="foot-brand">
+      <a href="#" class="brand" aria-label="Shrobon AI Calling home"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="wm">Shrobon <span>AI Calling</span><small>by Oleyn</small></span></a>
+      <p>Shrobon AI Calling answers when you can't, so every enquiry reaches you.</p>
+    </div>
+    <div class="foot-cols">
+      <div><h4>Product</h4><ul><li><a href="#/features">Features</a></li><li><a href="#dashboard">Dashboard</a></li><li><a href="#industries">Who it's for</a></li><li><a href="#soon">Coming soon</a></li><li><a href="#/plans">Plans</a></li></ul></div>
+      <div><h4>Company</h4><ul><li><a href="#">About Oleyn</a></li><li><a href="#cta">Contact</a></li><li><a href="#">Sign in</a></li></ul></div>
+      <div><h4>Legal</h4><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li><li><a href="#">Call recording notice</a></li></ul></div>
+    </div>
+  </div>
+  <div class="fbot"><span>© 2026 Oleyn. All rights reserved.</span><span>Made for service businesses everywhere</span></div>
+</div></footer>
+
+<div id="toast" role="status" aria-live="polite" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:70;max-width:calc(100vw - 32px)"></div>
+
+<script>
+const w=document.getElementById('wave');for(let i=0;i<34;i++){const s=document.createElement('span');s.style.animationDelay=(i*0.07%1.1)+'s';w.appendChild(s)}
+const nav=document.getElementById('topnav'),burger=document.getElementById('burger'),links=document.getElementById('links'),pill=document.getElementById('pill'),navA=[...links.querySelectorAll('a')];
+const movePill=a=>{if(!a){pill.style.opacity=0;return}pill.style.left=a.offsetLeft+'px';pill.style.width=a.offsetWidth+'px';pill.style.opacity=1};
+const current=()=>navA.find(a=>a.classList.contains('act'));
+navA.forEach(a=>a.addEventListener('mouseenter',()=>movePill(a)));
+links.addEventListener('mouseleave',()=>movePill(current()));
+const closeMenu=()=>{links.classList.remove('open');nav.classList.remove('menu-open');burger.setAttribute('aria-expanded','false')};
+burger.onclick=()=>{const o=links.classList.toggle('open');nav.classList.toggle('menu-open',o);burger.setAttribute('aria-expanded',o)};
+navA.forEach(a=>a.addEventListener('click',closeMenu));
+const home=document.getElementById('home');
+const PAGES={'/features':{el:document.getElementById('fpage'),title:'Features · Shrobon AI Calling by Oleyn'},'/plans':{el:document.getElementById('ppage'),title:'Plans · Shrobon AI Calling by Oleyn'}};
+const curPage=()=>Object.keys(PAGES).find(k=>!PAGES[k].el.hidden)||null;
+/* the active link gets an underline: the current page, or on home the section you're reading */
+const onScroll=()=>{nav.classList.toggle('scrolled',scrollY>40);let act=null;const cp=curPage();
+if(cp){act=navA.find(a=>a.getAttribute('href')==='#'+cp)}
+else{let best=-Infinity;navA.forEach(a=>{const h=a.getAttribute('href')||'';const s=(h.startsWith('#')&&!h.startsWith('#/')&&h.length>1)?document.getElementById(h.slice(1)):null;if(!s)return;const r=s.getBoundingClientRect();if(r.top<140&&r.bottom>140&&r.top>best){best=r.top;act=a}})}
+navA.forEach(a=>{a.classList.toggle('act',a===act);if(a===act)a.setAttribute('aria-current',cp?'page':'true');else a.removeAttribute('aria-current')});movePill(act)};
+addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);
+/* simple page switch: #/features and #/plans show their pages, everything else shows the home page */
+const TITLE_HOME=document.title;
+function route(hash){let h='';try{h=decodeURIComponent((typeof hash==='string'?hash:location.hash).slice(1))}catch(_){};const was=curPage();let show=PAGES[h]?h:null,target=null;
+if(!show&&h){target=document.getElementById(h);if(target){const owner=Object.keys(PAGES).find(k=>PAGES[k].el.contains(target));if(owner)show=owner;else if(!home.contains(target))show=was}}
+Object.keys(PAGES).forEach(k=>PAGES[k].el.hidden=k!==show);home.hidden=!!show;document.title=show?PAGES[show].title:TITLE_HOME;
+if(target)requestAnimationFrame(()=>target.scrollIntoView());else if(show!==was||show||!h){const de=document.documentElement;de.style.scrollBehavior='auto';scrollTo(0,0);requestAnimationFrame(()=>{scrollTo(0,0);de.style.scrollBehavior=''})}
+onScroll()}
+addEventListener('hashchange',()=>route());addEventListener('popstate',()=>route());route();
+/* switch pages on click too, so links work even where the address bar can't change (embedded or sandboxed previews) */
+document.addEventListener('click',e=>{if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey)return;const a=e.target.closest('a[href^="#"]');if(!a)return;const h=a.getAttribute('href');e.preventDefault();try{if(location.hash!==h)history.pushState(null,'',h===''||h==='#'?location.pathname+location.search:h)}catch(_){}route(h)});
+/* scroll reveal, only when motion is welcome */
+if('IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches){document.documentElement.classList.add('js');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -6% 0px'});
+document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el))}
+document.querySelectorAll('.q button').forEach(b=>b.onclick=()=>{const o=b.parentElement.classList.toggle('open');b.setAttribute('aria-expanded',o)});
+const t=document.getElementById('toast');
+document.getElementById('ctaForm').onsubmit=e=>{e.preventDefault();const em=document.getElementById('cta-email').value.replace(/[<>&"]/g,'');
+t.innerHTML='<div style="background:#14201B;color:#fff;padding:12px 18px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(20,32,27,.25)">Thanks! We\'ll email '+em+' to book your demo.</div>';
+e.target.reset();setTimeout(()=>t.innerHTML='',4000)};
+</script>
+</body>
+</html>

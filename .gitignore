@@ -1,0 +1,8 @@
+# Only the landing page is published. Everything else in this folder
+# (client BRD, PRD, prototype, zips, tool settings) stays private.
+*
+!.gitignore
+!README.md
+!ai-receptionist-landing.html
+!share-landing-server.js
+!Share landing page.cmd
